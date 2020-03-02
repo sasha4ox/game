@@ -2,22 +2,22 @@ import React, { useState } from 'react';
 import { useEffect, useRef } from 'react';
 import './TableCreater.css';
 
-export const TableCreater = ({ lvlMode }) => {
+export const TableCreater = ({ lvlMode, gameInProgressHandler, name, requestHandle }) => {
   let { field, delay } = lvlMode;
-  const [fieldFill, setFieldFill] = useState([]);
   const idInterval = useRef(null);
   const squares = field * field;
+  const sizeSquaresInPx = 35;
   const winnerQuantityOfFiled = Math.ceil(squares / 2);
   let numberOfRows = [];
   numberOfRows.length = squares;
   numberOfRows.fill({});
   const [numberOfRow, setNumberOfRow] = useState(numberOfRows);
-  console.log('numberOfRows', numberOfRow.length);
+  let winnerIs = '';
   const inputChangeHandle = e => {
     const { id } = e.target;
     setNumberOfRow(prev => {
       return prev.map((item, index) => {
-        if (id == index) {
+        if (+id === +index) {
           return {
             ...item,
             winner: true,
@@ -28,17 +28,23 @@ export const TableCreater = ({ lvlMode }) => {
         };
       });
     });
-    console.log('afte Click:', numberOfRow);
   };
   function randomNumber(max, without) {
     let random = Math.floor(Math.random() * Math.floor(max));
     for (let i = 0; i < without.length; i++) {
-      console.log(random === without[i]);
       if (random === without[i]) {
         return randomNumber(max, without);
       }
     }
     return random;
+  }
+  function getDate() {
+    const Datee = new Date();
+    const dateArray = Datee.toString().split(' ');
+    const dateNowString = `${dateArray[4].slice(0, 5)}; ${dateArray[2]} ${dateArray[1]} ${
+      dateArray[3]
+    }`;
+    return dateNowString;
   }
   // Counter of winner
   let countAi = 0;
@@ -50,17 +56,25 @@ export const TableCreater = ({ lvlMode }) => {
       countAi = countAi + 1;
     }
   });
-  if (countAi === winnerQuantityOfFiled || countPlayer === winnerQuantityOfFiled) {
+
+  if (countPlayer >= winnerQuantityOfFiled) {
     clearInterval(idInterval.current);
+    gameInProgressHandler();
+    winnerIs = name;
+    const date = getDate();
+    requestHandle(winnerIs, date);
+  } else if (countAi >= winnerQuantityOfFiled) {
+    clearInterval(idInterval.current);
+    gameInProgressHandler();
+    winnerIs = 'Computer AI';
+    const date = getDate();
+    requestHandle(winnerIs, date);
   }
-  console.log('AI', countAi);
-  console.log('PLAYER', countPlayer);
   //// Counter of winner END
+  const fieldFill = [];
   const timer = squares => {
-    console.log('squares Inside before:', squares);
     const randomItem = randomNumber(squares, fieldFill);
     setNumberOfRow(prev => {
-      console.log(prev);
       return prev.map((item, index) => {
         if (index === randomItem) {
           return {
@@ -74,10 +88,10 @@ export const TableCreater = ({ lvlMode }) => {
         }
       });
     });
-    setFieldFill(prev => prev.push(randomItem));
+    fieldFill.push(randomItem);
     async function timerOn() {
       let promise = new Promise(resolve => {
-        setTimeout(() => resolve('готово!'), delay - 100);
+        setTimeout(() => resolve('готово!'), delay);
       });
       let result = await promise;
       if (result) {
@@ -108,61 +122,64 @@ export const TableCreater = ({ lvlMode }) => {
       timer(squares);
     }, delay);
     setNumberOfRow(numberOfRows);
-    setFieldFill([]);
+
     return () => {
       clearInterval(idInterval.current);
       setNumberOfRow(numberOfRows);
-      setFieldFill([]);
     };
   }, [lvlMode]);
   return (
-    <div
-      style={{
-        width: `${field * 50}px`,
-        height: `${field * 50}px`,
-        display: 'flex',
-        flexWrap: 'wrap',
-      }}
-    >
-      {numberOfRow.map((item, indexRow) => {
-        return (
-          <div
-            key={Date.now() * indexRow}
-            className="square"
-            style={{
-              boxSizing: `border-box`,
-              width: '50px',
-              height: '50px',
-              border: `1px solid gray`,
-            }}
-          >
-            <label
-              htmlFor={indexRow}
+    <>
+      {winnerIs ? <p className="winner">Winner is {winnerIs}</p> : <p className="winner"></p>}
+      <div
+        style={{
+          width: `${field * sizeSquaresInPx}px`,
+          height: `${field * sizeSquaresInPx}px`,
+          display: 'flex',
+          flexWrap: 'wrap',
+          margin: '10px auto',
+        }}
+      >
+        {numberOfRow.map((item, indexRow) => {
+          return (
+            <div
+              key={Date.now() * indexRow}
+              className="square"
               style={{
-                width: `100%`,
-                height: `100%`,
-                display: 'block',
-                background: `${
-                  numberOfRow[indexRow].winner
-                    ? 'green'
-                    : numberOfRow[indexRow].winner === false
-                    ? 'red'
-                    : numberOfRow[indexRow].active
-                    ? 'blue'
-                    : 'none'
-                }`,
+                boxSizing: `border-box`,
+                width: `${sizeSquaresInPx}px`,
+                height: `${sizeSquaresInPx}px`,
+                border: `1px solid gray`,
               }}
             >
-              <input
-                id={indexRow}
-                type="checkbox"
-                disabled={numberOfRow[indexRow].active ? false : true}
-                onChange={inputChangeHandle}
-              />
-            </label>
-          </div>
-        );
-      })}
-    </div>
+              <label
+                htmlFor={indexRow}
+                style={{
+                  width: `100%`,
+                  height: `100%`,
+                  display: 'block',
+                  background: `${
+                    numberOfRow[indexRow].winner
+                      ? 'green'
+                      : numberOfRow[indexRow].winner === false
+                      ? 'red'
+                      : numberOfRow[indexRow].active
+                      ? 'blue'
+                      : 'none'
+                  }`,
+                }}
+              >
+                <input
+                  id={indexRow}
+                  type="checkbox"
+                  disabled={numberOfRow[indexRow].active ? false : true}
+                  onChange={inputChangeHandle}
+                />
+              </label>
+            </div>
+          );
+        })}
+      </div>
+    </>
   );
 };

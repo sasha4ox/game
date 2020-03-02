@@ -1,0 +1,48 @@
+input[type='checkbox']:checked,
+input[type='checkbox']:not(:checked) {
+  position: absolute;
+  left: -9999px;
+}
+input {
+  padding-left: 10px;
+  background: rgb(212, 212, 212);
+}
+input::placeholder {
+  color: gray;
+}
+select {
+  background: rgb(177, 176, 176);
+  padding: 10px;
+}
+button {
+  background: rgb(150, 149, 149);
+  padding: 15px;
+  color: white;
+}
+input,
+button,
+select {
+  font-size: 1.2rem;
+  box-sizing: border-box;
+  /* background: rgb(124, 133, 218); */
+  height: 50px;
+  margin-right: 20px;
+  border: none;
+  border-radius: 5px;
+}
+.winner {
+  height: 40px;
+  margin: 10px;
+  text-align: center;
+  font-size: 40px;
+}
+.leader {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 70%;
+  margin: 0 auto;
+}
+.leader h1 {
+  color: rgb(92, 87, 87);
+}

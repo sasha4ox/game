@@ -1,7 +1,0 @@
-.square {
-}
-input[type='checkbox']:checked,
-input[type='checkbox']:not(:checked) {
-  position: absolute;
-  left: -9999px;
-}

@@ -1,0 +1,23 @@
+#root {
+  margin: 10px;
+}
+.container {
+  box-sizing: border-box;
+  display: flex;
+  border: 2px solid gray;
+  min-width: 100%;
+  min-height: 50vh;
+}
+.leftSide {
+  border-right: 1px solid gray;
+}
+.leftSide,
+.rightSide {
+  width: 50%;
+  padding: 20px;
+}
+.pr {
+  text-align: center;
+  margin: 10px;
+  color: rgb(92, 87, 87);
+}

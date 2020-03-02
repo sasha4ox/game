@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { TableCreater } from './components/TableCreater';
-import { SetDifficulty } from './components/SetDifficulty';
-
+import { TableCreater } from './components/TableCreater/TableCreater';
+import { SetDifficulty } from './components/SetDifficulty/SetDifficulty';
+import { TableOfWinner } from './components/TableOfWinner/TableOfWinner';
+import './App.css';
 import axios from 'axios';
 
 function App() {
@@ -11,6 +12,9 @@ function App() {
   const [lvlMode, setLvlmode] = useState(false);
   const [howNamyPlays, setHowNamyPlays] = useState(0);
   const [name, setName] = useState('');
+  const [triggerHndlerUpdate, setTriggerHndlerUpdate] = useState(false);
+  const [isStart, setIsStart] = useState(false);
+  const [isGameInProgress, setIsGameInProgress] = useState(false);
   useEffect(() => {
     setLoading(true);
     async function getSettings() {
@@ -22,26 +26,78 @@ function App() {
   }, []);
   const selectedHandler = value => {
     setLvlmode(settings[value]);
+    setIsStart(isStart && !isStart);
   };
   const nameHandler = val => {
     setName(val);
   };
+  const falselvlModeTriger = prev => {
+    const changeObj = { ...prev, ...{ relod: true } };
+    const prevObj = { ...prev };
+    setLvlmode(changeObj);
+    setLvlmode(prevObj);
+  };
   const numberOfPlayHandler = () => {
     setHowNamyPlays(prev => prev + 1);
+    setIsStart(true);
+    setIsGameInProgress(prev => !prev);
+    falselvlModeTriger(lvlMode);
+  };
+  const gameInProgressHandler = () => {
+    setIsGameInProgress(false);
+  };
+  const postRequest = (winner, date) => {
+    const data = JSON.stringify({
+      winner,
+      date,
+    });
+    async function postWinners() {
+      const response = await axios({
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        url: `${url}winners`,
+        data,
+      });
+      setTriggerHndlerUpdate(prev => !prev);
+    }
+    postWinners();
+  };
+  let count = 1;
+  const requestHandle = (winner, date) => {
+    if (count % 2 === 0) {
+      postRequest(winner, date);
+    }
+    count += 1;
   };
   return (
     <>
-      <p>{name}</p>
-      <SetDifficulty
-        settings={settings}
-        loading={loading}
-        selectedHandler={selectedHandler}
-        nameHandler={nameHandler}
-        numberOfPlayHandler={numberOfPlayHandler}
-        howNamyPlays={howNamyPlays}
-      />
+      <h1 className="pr"> Pretty Game</h1>
+      <div className="container">
+        <div className="leftSide">
+          <SetDifficulty
+            settings={settings}
+            loading={loading}
+            selectedHandler={selectedHandler}
+            nameHandler={nameHandler}
+            numberOfPlayHandler={numberOfPlayHandler}
+            howNamyPlays={howNamyPlays}
+            isGameInProgress={isGameInProgress}
+          />
 
-      {!loading && lvlMode && <TableCreater lvlMode={lvlMode} />}
+          {!loading && lvlMode && isStart && (
+            <TableCreater
+              lvlMode={lvlMode}
+              gameInProgressHandler={gameInProgressHandler}
+              isGameInProgress={isGameInProgress}
+              name={name}
+              requestHandle={requestHandle}
+            />
+          )}
+        </div>
+        <div className="rightSide">
+          <TableOfWinner triggerHndlerUpdate={triggerHndlerUpdate} />
+        </div>
+      </div>
     </>
   );
 }
